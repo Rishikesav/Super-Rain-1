@@ -1,0 +1,162 @@
+<!DOCTYPE html> <html>
+<head>
+    <style>
+        body {
+          background-color: blue;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/4.11.0/firebase.js"></script>
+    <script>
+        class Note {
+            constructor(name, des) {
+                this.name = name;
+                this.des = des;
+            }
+        }
+        
+        #hello {
+          background-color: green;
+        }
+       
+    </script>
+    <script>
+      // Initialize Firebase
+
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyDY1JEIB4RlVwNsrj8mEqm8GdVB2q2C4lw",
+    authDomain: "hello-world-d09c7.firebaseapp.com",
+    databaseURL: "https://hello-world-d09c7.firebaseio.com",
+    projectId: "hello-world-d09c7",
+    storageBucket: "hello-world-d09c7.appspot.com",
+    messagingSenderId: "773856439415"
+  };
+  firebase.initializeApp(config);
+        
+        var database = firebase.database();
+        var classroomParent = database.ref().child("Classrooms");
+        
+        var classes = {};
+        //loops through the classes
+        //finds the notes and adds them in
+        function updateNotes() {
+            classroomParent.ref.once("value")
+                .then(function(snapshot) {
+                snapshot.forEach(function(childSnapShot) {
+                    var key = childSnapShot.key;
+                    var val = childSnapShot.val();
+
+                    var notes = [];
+                    childSnapShot.forEach(function (child2SnapShot){
+                        var n = new Note(child2SnapShot.key,
+                                        child2SnapShot.val());
+                       notes.push(n);
+                    });
+                    classes[key] = notes;
+                });
+            });
+            console.log(classes);
+        }
+        function addToFireBase(cN, nN, nD) {
+            console.log(cN + " " + nN + " " + nD);
+            var updates = {};
+            updates['/Classrooms/' + cN + '/' + nN] = nD;
+            database.ref().update(updates);
+            updateNotes();
+        }
+        
+    </script>
+   <!-- <script src="jquery-3.3.1.min.js"></script>-->
+    
+    <script>
+        var notFinishedText;
+        var className;
+        var noteName;
+        var noteDes;
+        function init() {
+            notFinishedText = document.getElementById("NotFinishedText");
+            className = document.getElementById("className");
+            noteName = document.getElementById("noteName");
+            noteDes = document.getElementById("description");
+            updateNotes();
+        }
+        
+        function makeNewNote() {
+            if (className.value.length == 0 ||
+               noteName.value.length == 0 ||
+               noteDes.value.length == 0) {
+                notFinishedText.style.visibility = "visible";
+            } else{
+                var cN = className.value;
+                var nN = noteName.value;
+                var nD = noteDes.value;
+                
+                addToFireBase(cN, nN, nD);
+                
+                notFinishedText.style.visibility = "collapse";
+            }
+        }
+        
+        function displayNotes() {
+            document.getElementById("ClassDisplay").innerHTML = "";
+            for (var className in classes) {
+                var div = document.createElement("div");
+                div.style.lineHeight = "0%";
+                div.style.width = "25%";
+                
+                var classNameText = document.createElement("p");
+                classNameText.innerHTML = className;
+                classNameText.style.color = "red";
+                
+                div.append(classNameText);
+                
+                var noteArr = classes[className];
+                for (var i in noteArr) {
+                    var n = document.createElement("p");
+                    var d = document.createElement("p");
+                    n.innerHTML = noteArr[i].name; n.style.textAlign = "center";
+                    d.innerHTML = noteArr[i].des; d.style.textAlign = "center";
+                    
+                    div.append(n);
+                    div.append(d);
+                    div.append(document.createElement("br"));
+                }
+                document.getElementById("ClassDisplay").append(div);
+            }
+        }
+    </script>
+    </head>
+    <body onload="init()">
+        <br><br>
+        
+        <center>
+        <h1>Save Text To Database</h1>
+        <p> By Super Rain</p>
+        </center>
+        
+        
+        <div style="background-color:lightblue">
+            Section:
+            <input type="text" id="className" value="type here...">
+            Your Title:
+            <input type="text" id="noteName" value="notes..."><br>
+            <br />
+            <hr />
+            Memo:<br>
+            <textarea id="description" rows="20" cols="220">I am...</textarea><br>
+            <br />
+            <hr />
+            <button onclick="makeNewNote()" id="newNoteButton">Save</button>
+      
+        <button onclick="displayNotes()">Open Notes</button>
+        
+        </div>
+        
+        <div id="ClassDisplay">
+            
+        </div>
+    </body>
+    
+    
+    
+</html>
